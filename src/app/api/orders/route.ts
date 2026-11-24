@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { priceLines } from "@/lib/orders";
+import { allow, clientIp } from "@/lib/ratelimit";
+import { sendMail, siteUrl } from "@/lib/mail";
+import { formatILS } from "@/lib/pricing";
 
 const REQUIRED = ["customerName", "company", "email", "phone", "address"] as const;
 
 export async function POST(req: Request) {
+  if (!allow("order:" + clientIp(req), 10, 60 * 60 * 1000)) return NextResponse.json({ error: "יותר מדי ניסיונות. נסו שוב מאוחר יותר" }, { status: 429 });
   const body = await req.json().catch(() => null);
+  // שדה פיתיון נגד בוטים: אנשים לא ממלאים אותו
+  if (body && typeof body.website === "string" && body.website) return NextResponse.json({ number: "BS-OK" });
   if (!body || !Array.isArray(body.lines)) return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
 
   for (const f of REQUIRED) {
@@ -37,5 +43,11 @@ export async function POST(req: Request) {
       items: { create: priced.lines.map((l) => ({ productId: l.productId, name: l.name, qty: l.qty, unitPrice: l.unitPrice })) },
     },
   });
+  const itemsText = priced.lines.map((l) => `- ${l.name} × ${l.qty} (${formatILS(l.unitPrice)} ליחידה)`).join("\n");
+  const link = `${siteUrl()}/order/${order.number}`;
+  await Promise.all([
+    sendMail({ to: order.email, subject: `קיבלנו את ההזמנה ${order.number}`, text: `שלום ${order.customerName},\n\nההזמנה התקבלה ותיבדק על ידינו.\n\n${itemsText}\n\nסה״כ כולל מע״מ: ${formatILS(order.total)}\n\nמעקב אחר ההזמנה: ${link}` }),
+    sendMail({ to: process.env.ADMIN_EMAIL || "", subject: `הזמנה חדשה ${order.number} מ-${order.company}`, text: `${order.company} / ${order.customerName}\n${order.email} ${order.phone}\n\n${itemsText}\n\nסה״כ: ${formatILS(order.total)}\n${siteUrl()}/admin/orders/${order.id}` }),
+  ]);
   return NextResponse.json({ number: order.number });
 }

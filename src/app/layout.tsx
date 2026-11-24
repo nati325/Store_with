@@ -9,6 +9,7 @@ const sans = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-sans", disp
 const serif = Frank_Ruhl_Libre({ subsets: ["hebrew", "latin"], variable: "--font-serif", weight: ["500", "700", "900"], display: "swap" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
   title: "מתנות ומוצרי מותג לחברות",
   description: "הזמנות בכמויות לחברות ולאירועים, עם מחירים יורדים לפי כמות",
 };
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <nav aria-label="ראשי">
                 <Link href="/#catalog">קטלוג</Link>
                 <Link href="/#how">איך זה עובד</Link>
+                <Link href="/quote">הצעת מחיר</Link>
                 <CartLink />
               </nav>
             </div>
@@ -41,6 +43,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <nav aria-label="תחתית">
                 <Link href="/#catalog">קטלוג</Link>
                 <Link href="/cart">עגלה</Link>
+                <Link href="/quote">הצעת מחיר</Link>
+                <Link href="/terms">תקנון</Link>
+                <Link href="/privacy">פרטיות</Link>
+                <Link href="/accessibility">נגישות</Link>
               </nav>
             </div>
           </footer>

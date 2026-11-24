@@ -5,6 +5,10 @@ import { formatILS } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
+const STATUS: Record<string, string> = { NEW: "התקבלה, ממתינה לאישור", CONFIRMED: "אושרה", PAID: "שולמה", SHIPPED: "נשלחה", CANCELLED: "בוטלה" };
+
+export const metadata = { robots: { index: false } };
+
 export default async function OrderDone({ params }: { params: { number: string } }) {
   const o = await db.order.findUnique({ where: { number: params.number }, include: { items: true } });
   if (!o) notFound();
@@ -13,6 +17,10 @@ export default async function OrderDone({ params }: { params: { number: string }
       <div className="check" aria-hidden>✓</div>
       <h1 style={{ fontSize: "clamp(2rem,5vw,3rem)" }}>תודה, ההזמנה התקבלה</h1>
       <p className="muted">מספר הזמנה <span className="ordnum">{o.number}</span></p>
+      <p><span className="status" data-s={o.status}>{STATUS[o.status] ?? o.status}</span></p>
+      {o.paymentUrl && o.status !== "PAID" && o.status !== "CANCELLED" && (
+        <p><a className="btn" href={o.paymentUrl} rel="noopener noreferrer">לתשלום מאובטח</a></p>
+      )}
       <div className="panel">
         <table className="plain">
           <thead><tr><th>מוצר</th><th>כמות</th><th>ליחידה</th></tr></thead>

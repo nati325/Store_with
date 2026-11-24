@@ -9,10 +9,15 @@ const DEMO = [
   { q: "20+", p: 24 }, { q: "50+", p: 20 }, { q: "100+", p: 17 }, { q: "300+", p: 14.5 },
 ];
 
-export default async function Home({ searchParams }: { searchParams: { category?: string } }) {
+export default async function Home({ searchParams }: { searchParams: { category?: string; q?: string; sort?: string } }) {
   const all = await db.product.findMany({ where: { active: true }, include: { tiers: true }, orderBy: { id: "asc" } });
   const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean)));
-  const products = searchParams.category ? all.filter((p) => p.category === searchParams.category) : all;
+  const q = (searchParams.q ?? "").trim().toLowerCase();
+  const lowestOf = (p: (typeof all)[number]) => Math.min(p.basePrice, ...p.tiers.map((t) => t.unitPrice));
+  let products = all.filter((p) => (!searchParams.category || p.category === searchParams.category) && (!q || (p.name + " " + p.description + " " + p.category).toLowerCase().includes(q)));
+  if (searchParams.sort === "price-asc") products = [...products].sort((a, b) => lowestOf(a) - lowestOf(b));
+  else if (searchParams.sort === "price-desc") products = [...products].sort((a, b) => lowestOf(b) - lowestOf(a));
+  else if (searchParams.sort === "new") products = [...products].sort((a, b) => b.id - a.id);
 
   return (
     <>
@@ -57,6 +62,17 @@ export default async function Home({ searchParams }: { searchParams: { category?
             <h2>הקטלוג</h2>
             <p className="muted">כל המחירים ללא מע״מ. כמות מינימום מצוינת בכל מוצר.</p>
           </div>
+          <form className="toolbar" action="/" method="get">
+            {searchParams.category && <input type="hidden" name="category" value={searchParams.category} />}
+            <input type="search" name="q" defaultValue={searchParams.q ?? ""} placeholder="חיפוש מוצר…" aria-label="חיפוש מוצר" />
+            <select name="sort" defaultValue={searchParams.sort ?? ""} aria-label="מיון">
+              <option value="">מיון: ברירת מחדל</option>
+              <option value="price-asc">מחיר: מהנמוך לגבוה</option>
+              <option value="price-desc">מחיר: מהגבוה לנמוך</option>
+              <option value="new">הכי חדש</option>
+            </select>
+            <button className="btn secondary">חיפוש</button>
+          </form>
           <div className="chips">
             <Link className="chip" href="/#catalog" aria-current={!searchParams.category}>הכל</Link>
             {categories.map((c) => (
@@ -87,7 +103,8 @@ export default async function Home({ searchParams }: { searchParams: { category?
               );
             })}
           </div>
-          {products.length === 0 && <p className="muted">אין מוצרים להצגה.</p>}
+          {products.length === 0 && <p className="muted">לא נמצאו מוצרים. <Link href="/quote" style={{ textDecoration: "underline" }}>אפשר לבקש הצעת מחיר</Link>.</p>}
+          <p className="muted" style={{ marginTop: 28 }}>לא מצאתם? צריכים כמות חריגה או מוצר מותאם? <Link href="/quote" style={{ textDecoration: "underline", fontWeight: 700 }}>בקשו הצעת מחיר</Link>.</p>
         </div>
       </section>
 

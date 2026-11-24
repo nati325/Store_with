@@ -80,6 +80,7 @@ export default function CartPage() {
           })}
 
           <form id="order-form" onSubmit={submit} className="panel" style={{ marginTop: 24 }}>
+            <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
             <h2 style={{ fontSize: "1.5rem" }}>פרטים להזמנה</h2>
             <p className="muted">ההזמנה נשלחת אלינו לאישור. אין חיוב באתר.</p>
             <div className="row">

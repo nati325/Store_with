@@ -44,6 +44,9 @@ model Order {
   address      String
   eventDate    String      @default("")
   notes        String      @default("")
+  paymentUrl   String      @default("")
+  adminNotes   String      @default("")
+  paidAt       DateTime?
   subtotal     Int // באגורות, ללא מע"מ
   vat          Int
   total        Int
@@ -60,4 +63,16 @@ model OrderItem {
   name      String
   qty       Int
   unitPrice Int
+}
+
+model QuoteRequest {
+  id        Int      @id @default(autoincrement())
+  name      String
+  company   String
+  email     String
+  phone     String
+  message   String
+  product   String   @default("")
+  status    String   @default("NEW") // NEW | DONE
+  createdAt DateTime @default(now())
 }
