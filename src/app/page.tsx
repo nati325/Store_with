@@ -13,7 +13,7 @@ export default async function Home({ searchParams }: { searchParams: { category?
     <>
       <h1>מתנות ומוצרי מותג לחברות ואירועים</h1>
       <p className="muted">ככל שמזמינים יותר, המחיר ליחידה יורד. כל המחירים ללא מע״מ.</p>
-      <div className="row" style={{ marginBottom: 16 }}>
+      <div className="chips">
         <Link className="btn secondary" href="/">הכל</Link>
         {categories.map((c) => (
           <Link key={c} className="btn secondary" href={`/?category=${encodeURIComponent(c)}`}>{c}</Link>

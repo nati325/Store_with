@@ -26,3 +26,5 @@ th, td { text-align:start; padding:10px; border-bottom:1px solid var(--line); ve
 .badge { background:var(--line); border-radius:99px; padding:2px 10px; font-size:.8rem; }
 main { padding: 24px 0 64px; }
 @media (max-width:600px){ th, td { padding:8px 6px; font-size:.9rem; } }
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.chips .btn { padding:6px 14px; font-size:.9rem; }
