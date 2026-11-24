@@ -1,0 +1,27 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { ADMIN_COOKIE, adminToken } from "@/lib/admin";
+
+export const dynamic = "force-dynamic";
+
+async function login(formData: FormData) {
+  "use server";
+  const pw = process.env.ADMIN_PASSWORD;
+  if (pw && formData.get("password") === pw) {
+    cookies().set(ADMIN_COOKIE, adminToken(), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/admin", maxAge: 60 * 60 * 12 });
+    redirect("/admin/orders");
+  }
+  redirect("/admin/login?error=1");
+}
+
+export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
+  return (
+    <form action={login} style={{ maxWidth: 360 }}>
+      <h1>כניסת מנהל</h1>
+      <label>סיסמה</label>
+      <input type="password" name="password" required autoFocus />
+      {searchParams.error && <p className="error">סיסמה שגויה</p>}
+      <p><button className="btn">כניסה</button></p>
+    </form>
+  );
+}

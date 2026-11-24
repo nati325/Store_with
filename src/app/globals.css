@@ -1,0 +1,28 @@
+:root { --bg:#faf9f6; --fg:#1d1d1f; --muted:#6b6b70; --card:#fff; --line:#e4e2dc; --brand:#1f4f46; --brand-fg:#fff; --danger:#b3261e; }
+@media (prefers-color-scheme: dark) { :root { --bg:#141414; --fg:#f2f2f2; --muted:#a0a0a6; --card:#1e1e1e; --line:#33332f; --brand:#58b5a0; --brand-fg:#0d1f1b; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font-family: system-ui, "Segoe UI", Arial, sans-serif; line-height:1.5; }
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+header.top { border-bottom:1px solid var(--line); background:var(--card); }
+header.top .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; }
+header.top .logo { font-weight:700; font-size:1.2rem; text-decoration:none; }
+nav { display:flex; gap:16px; align-items:center; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+.card h3 { margin:0 0 4px; font-size:1.05rem; }
+.muted { color:var(--muted); font-size:.9rem; }
+.price { font-weight:700; font-size:1.1rem; }
+.btn { display:inline-block; background:var(--brand); color:var(--brand-fg); border:0; border-radius:8px; padding:10px 18px; font-size:1rem; cursor:pointer; text-decoration:none; }
+.btn.secondary { background:transparent; color:var(--fg); border:1px solid var(--line); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+input, textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); font:inherit; }
+label { display:block; margin:12px 0 4px; font-size:.9rem; }
+table { width:100%; border-collapse:collapse; background:var(--card); }
+th, td { text-align:start; padding:10px; border-bottom:1px solid var(--line); vertical-align:top; }
+.row { display:flex; gap:12px; flex-wrap:wrap; }
+.row > * { flex:1 1 220px; }
+.error { color:var(--danger); }
+.badge { background:var(--line); border-radius:99px; padding:2px 10px; font-size:.8rem; }
+main { padding: 24px 0 64px; }
+@media (max-width:600px){ th, td { padding:8px 6px; font-size:.9rem; } }

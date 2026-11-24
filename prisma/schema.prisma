@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  slug        String      @unique
+  name        String
+  description String      @default("")
+  category    String      @default("")
+  imageUrl    String      @default("")
+  basePrice   Int // באגורות, מחיר ליחידה ללא מע"מ
+  minQty      Int         @default(1)
+  active      Boolean     @default(true)
+  tiers       PriceTier[]
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+}
+
+model PriceTier {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minQty    Int
+  unitPrice Int // באגורות
+
+  @@unique([productId, minQty])
+}
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  number       String      @unique
+  status       String      @default("NEW") // NEW | CONFIRMED | PAID | SHIPPED | CANCELLED
+  customerName String
+  company      String
+  taxId        String      @default("")
+  email        String
+  phone        String
+  address      String
+  eventDate    String      @default("")
+  notes        String      @default("")
+  subtotal     Int // באגורות, ללא מע"מ
+  vat          Int
+  total        Int
+  items        OrderItem[]
+  createdAt    DateTime    @default(now())
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  name      String
+  qty       Int
+  unitPrice Int
+}
