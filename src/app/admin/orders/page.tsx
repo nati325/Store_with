@@ -22,36 +22,31 @@ export default async function AdminOrders() {
   const orders = await db.order.findMany({ orderBy: { createdAt: "desc" }, include: { items: true }, take: 200 });
   return (
     <>
-      <h1>הזמנות</h1>
-      <table>
-        <thead><tr><th>מס׳</th><th>לקוח</th><th>פריטים</th><th>סה״כ</th><th>סטטוס</th></tr></thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id}>
-              <td>{o.number}<div className="muted">{o.createdAt.toLocaleString("he-IL")}</div></td>
-              <td>
-                <b>{o.company}</b><br />{o.customerName}<br />
-                <span className="muted">{o.email} · {o.phone}</span><br />
-                <span className="muted">{o.address}</span>
-                {o.eventDate && <div className="muted">מועד רצוי: {o.eventDate}</div>}
-                {o.notes && <div className="muted">הערות: {o.notes}</div>}
-              </td>
-              <td>{o.items.map((i) => (<div key={i.id}>{i.name} × {i.qty}</div>))}</td>
-              <td>{formatILS(o.total)}</td>
-              <td>
-                <form action={setStatus}>
-                  <input type="hidden" name="id" value={o.id} />
-                  <select name="status" defaultValue={o.status}>
-                    {Object.entries(STATUSES).map(([k, v]) => (<option key={k} value={k}>{v}</option>))}
-                  </select>
-                  <button className="btn secondary" style={{ marginTop: 6 }}>עדכון</button>
-                </form>
-              </td>
-            </tr>
-          ))}
-          {orders.length === 0 && <tr><td colSpan={5}>אין הזמנות עדיין.</td></tr>}
-        </tbody>
-      </table>
+      <h1 style={{ fontSize: "2rem" }}>הזמנות</h1>
+      {orders.map((o) => (
+        <div className="ocard" key={o.id}>
+          <div>
+            <span className="num">{o.number}</span> <span className="status" data-s={o.status}>{STATUSES[o.status] ?? o.status}</span>
+            <div className="muted">{o.createdAt.toLocaleString("he-IL")}</div>
+            <p style={{ margin: "10px 0 0" }}><b>{o.company}</b> · {o.customerName}<br />
+              <span className="muted">{o.email} · {o.phone}<br />{o.address}</span></p>
+            {o.eventDate && <div className="muted">מועד רצוי: {o.eventDate}</div>}
+            {o.notes && <div className="muted">הערות: {o.notes}</div>}
+          </div>
+          <div>
+            {o.items.map((i) => (<div key={i.id}>{i.name} × {i.qty}</div>))}
+            <p style={{ margin: "10px 0 0" }}><b>{formatILS(o.total)}</b> <span className="muted">כולל מע״מ</span></p>
+          </div>
+          <form action={setStatus}>
+            <input type="hidden" name="id" value={o.id} />
+            <select name="status" defaultValue={o.status} aria-label="סטטוס">
+              {Object.entries(STATUSES).map(([k, v]) => (<option key={k} value={k}>{v}</option>))}
+            </select>
+            <button className="btn small block" style={{ marginTop: 8 }}>עדכון</button>
+          </form>
+        </div>
+      ))}
+      {orders.length === 0 && <p className="muted">אין הזמנות עדיין.</p>}
     </>
   );
 }

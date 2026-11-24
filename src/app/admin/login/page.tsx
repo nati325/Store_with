@@ -16,12 +16,12 @@ async function login(formData: FormData) {
 
 export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
-    <form action={login} style={{ maxWidth: 360 }}>
-      <h1>כניסת מנהל</h1>
+    <form action={login} className="panel" style={{ maxWidth: 380, margin: "64px auto" }}>
+      <h1 style={{ fontSize: "2rem" }}>כניסת מנהל</h1>
       <label>סיסמה</label>
       <input type="password" name="password" required autoFocus />
       {searchParams.error && <p className="error">סיסמה שגויה</p>}
-      <p><button className="btn">כניסה</button></p>
+      <p><button className="btn block">כניסה</button></p>
     </form>
   );
 }

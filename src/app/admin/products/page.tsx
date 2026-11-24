@@ -51,8 +51,8 @@ export default async function AdminProducts() {
   const products = await db.product.findMany({ orderBy: { id: "asc" } });
   return (
     <>
-      <h1>מוצרים</h1>
-      <table>
+      <h1 style={{ fontSize: "2rem" }}>מוצרים</h1>
+      <table className="plain panel">
         <thead><tr><th>שם</th><th>מחיר בסיס</th><th>מינימום</th><th>פעיל</th></tr></thead>
         <tbody>
           {products.map((p) => (
@@ -62,15 +62,15 @@ export default async function AdminProducts() {
               <td>{p.minQty}</td>
               <td>
                 <form action={toggle}><input type="hidden" name="id" value={p.id} />
-                  <button className="btn secondary">{p.active ? "פעיל (השבתה)" : "מושבת (הפעלה)"}</button>
+                  <button className="btn secondary small">{p.active ? "פעיל (השבתה)" : "מושבת (הפעלה)"}</button>
                 </form>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <h2>מוצר חדש</h2>
-      <form action={create} style={{ maxWidth: 560 }}>
+      <h2 style={{ marginTop: 32 }}>מוצר חדש</h2>
+      <form action={create} className="panel admin-form">
         <label>שם *</label><input name="name" required />
         <label>מזהה באנגלית (slug) *</label><input name="slug" required pattern="[a-zA-Z0-9-]+" />
         <label>קטגוריה</label><input name="category" />
