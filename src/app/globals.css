@@ -29,7 +29,7 @@ p { margin: 0 0 1em; }
 header.top { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line); }
 .bar { display: flex; align-items: center; justify-content: space-between; height: 68px; }
 .logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-head); font-weight: 900; font-size: 1.35rem; }
-.logo-mark { color: var(--accent); font-size: 1rem; }
+.logo-icon { flex: none; display: block; }
 nav { display: flex; align-items: center; gap: 6px; }
 nav a { padding: 8px 14px; border-radius: 99px; font-weight: 500; transition: background .15s; }
 nav a:hover { background: var(--surface-2); }

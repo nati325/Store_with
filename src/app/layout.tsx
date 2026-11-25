@@ -6,6 +6,7 @@ import "./globals.css";
 import { CartProvider } from "@/components/CartProvider";
 import CartLink from "@/components/CartLink";
 import { site, whatsappLink } from "@/lib/site";
+import Logo from "@/components/Logo";
 
 const sans = Heebo({ subsets: ["hebrew", "latin"], variable: "--font-sans", display: "swap" });
 const serif = Frank_Ruhl_Libre({ subsets: ["hebrew", "latin"], variable: "--font-serif", weight: ["500", "700", "900"], display: "swap" });
@@ -26,8 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <header className="top">
             <div className="wrap bar">
               <Link href="/" className="logo" aria-label="דף הבית">
-                <span className="logo-mark" aria-hidden>◆</span>
-                <span>{site.name}</span>
+                <Logo />
               </Link>
               <nav aria-label="ראשי">
                 <Link href="/#catalog">קטלוג</Link>
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="foot">
             <div className="wrap foot-in">
               <div>
-                <div className="logo"><span className="logo-mark" aria-hidden>◆</span><span>{site.name}</span></div>
+                <div className="logo"><Logo /></div>
                 <p className="muted">מתנות, מוצרי מותג וציוד לאירועים, בכמויות ובמחירי כמות.</p>
                 {(site.phone || site.email || wa) && (
                   <p className="contact">
