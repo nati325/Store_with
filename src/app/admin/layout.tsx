@@ -10,6 +10,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link href="/admin/orders">הזמנות</Link>
         <Link href="/admin/quotes">הצעות מחיר</Link>
         <Link href="/admin/products">מוצרים</Link>
+        <Link href="/admin/campaigns">דפי חג</Link>
+        <Link href="/admin/programs">העובד בוחר</Link>
       </nav>
       {children}
     </div>

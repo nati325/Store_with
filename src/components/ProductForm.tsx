@@ -1,6 +1,6 @@
 import { tiersToText } from "@/lib/tiers";
 
-type P = { id?: number; name?: string; slug?: string; category?: string; description?: string; basePrice?: number; minQty?: number; imageUrl?: string; active?: boolean; tiers?: { minQty: number; unitPrice: number }[] };
+type P = { branding?: string; leadTime?: string; tags?: string; id?: number; name?: string; slug?: string; category?: string; description?: string; basePrice?: number; minQty?: number; imageUrl?: string; active?: boolean; tiers?: { minQty: number; unitPrice: number }[] };
 
 /** שדות משותפים ליצירה ולעריכה של מוצר (שרת בלבד, בלי state). */
 export default function ProductFields({ p = {} }: { p?: P }) {
@@ -16,6 +16,11 @@ export default function ProductFields({ p = {} }: { p?: P }) {
       </div>
       <label htmlFor="tiers">מדרגות מחיר (כמות:מחיר, מופרדות בפסיק)</label>
       <input id="tiers" name="tiers" placeholder="50:20, 100:17" defaultValue={p.tiers ? tiersToText(p.tiers) : ""} dir="ltr" />
+      <div className="row">
+        <div><label htmlFor="branding">שיטות מיתוג</label><input id="branding" name="branding" placeholder="הדפסה, חריטה, רקמה" defaultValue={p.branding} /></div>
+        <div><label htmlFor="leadTime">זמן אספקה (מאישור הדמיה)</label><input id="leadTime" name="leadTime" placeholder="5-10 ימי עסקים" defaultValue={p.leadTime} /></div>
+      </div>
+      <label htmlFor="tags">תגיות לדפי חג (מופרדות בפסיק, באנגלית, למשל rosh-hashana)</label><input id="tags" name="tags" defaultValue={p.tags} dir="ltr" />
       <label htmlFor="image">תמונה (JPG, PNG, WEBP או GIF, עד 5MB)</label>
       <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
       {p.imageUrl && (

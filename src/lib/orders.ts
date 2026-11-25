@@ -2,7 +2,7 @@ import { db } from "./db";
 import { totals, unitPriceFor } from "./pricing";
 
 export type InLine = { productId: number; qty: number };
-export type PricedLine = { productId: number; name: string; qty: number; unitPrice: number; minQty: number; lineTotal: number; error?: string };
+export type PricedLine = { productId: number; name: string; qty: number; unitPrice: number; minQty: number; lineTotal: number; leadTime?: string; error?: string };
 
 /** מחשב מחירים בצד השרת. הלקוח לא קובע מחיר. */
 export async function priceLines(input: InLine[]) {
@@ -15,7 +15,7 @@ export async function priceLines(input: InLine[]) {
     const qty = Math.floor(Number(l.qty));
     const unitPrice = unitPriceFor(p.basePrice, p.tiers, qty);
     const error = !Number.isFinite(qty) || qty < p.minQty ? `כמות מינימלית: ${p.minQty}` : undefined;
-    lines.push({ productId: p.id, name: p.name, qty, unitPrice, minQty: p.minQty, lineTotal: unitPrice * qty, error });
+    lines.push({ productId: p.id, name: p.name, qty, unitPrice, minQty: p.minQty, lineTotal: unitPrice * qty, leadTime: p.leadTime, error });
   }
   const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
   return { lines, ...totals(subtotal), ok: lines.length > 0 && lines.every((l) => !l.error) };

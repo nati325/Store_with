@@ -26,3 +26,18 @@ test("קישור תשלום חייב להיות https", () => {
   assert.equal(safeHttpsUrl("http://x.com"), "");
   assert.ok(safeHttpsUrl("https://pay.example.com/abc").startsWith("https://"));
 });
+
+import { safeUploadUrl, tokenOk, newToken } from "./orderMail";
+test("כתובות העלאה תקינות בלבד", () => {
+  assert.equal(safeUploadUrl("/api/uploads/0123456789abcdef01234567.png"), "/api/uploads/0123456789abcdef01234567.png");
+  assert.equal(safeUploadUrl("https://evil.com/x.png"), "");
+  assert.equal(safeUploadUrl("/api/uploads/../../etc/passwd"), "");
+});
+test("טוקן הזמנה", () => {
+  const t = newToken();
+  assert.equal(t.length, 32);
+  assert.ok(tokenOk(t, t));
+  assert.ok(!tokenOk("x", t));
+  assert.ok(!tokenOk(undefined, t));
+  assert.ok(!tokenOk(t, ""));
+});

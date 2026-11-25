@@ -4,6 +4,7 @@ import { priceLines } from "@/lib/orders";
 import { allow, clientIp } from "@/lib/ratelimit";
 import { sendMail, siteUrl } from "@/lib/mail";
 import { formatILS } from "@/lib/pricing";
+import { newToken, safeUploadUrl, orderLink } from "@/lib/orderMail";
 
 const REQUIRED = ["customerName", "company", "email", "phone", "address"] as const;
 
@@ -37,6 +38,9 @@ export async function POST(req: Request) {
       address: str(body.address, 300),
       eventDate: str(body.eventDate, 40),
       notes: str(body.notes, 1000),
+      shipTo: str(body.shipTo, 2000),
+      logoUrl: safeUploadUrl(body.logoUrl),
+      token: newToken(),
       subtotal: priced.subtotal,
       vat: priced.vat,
       total: priced.total,
@@ -44,10 +48,10 @@ export async function POST(req: Request) {
     },
   });
   const itemsText = priced.lines.map((l) => `- ${l.name} × ${l.qty} (${formatILS(l.unitPrice)} ליחידה)`).join("\n");
-  const link = `${siteUrl()}/order/${order.number}`;
+  const link = orderLink(order);
   await Promise.all([
     sendMail({ to: order.email, subject: `קיבלנו את ההזמנה ${order.number}`, text: `שלום ${order.customerName},\n\nההזמנה התקבלה ותיבדק על ידינו.\n\n${itemsText}\n\nסה״כ כולל מע״מ: ${formatILS(order.total)}\n\nמעקב אחר ההזמנה: ${link}` }),
-    sendMail({ to: process.env.ADMIN_EMAIL || "", subject: `הזמנה חדשה ${order.number} מ-${order.company}`, text: `${order.company} / ${order.customerName}\n${order.email} ${order.phone}\n\n${itemsText}\n\nסה״כ: ${formatILS(order.total)}\n${siteUrl()}/admin/orders/${order.id}` }),
+    sendMail({ to: process.env.ADMIN_EMAIL || "", subject: `הזמנה חדשה ${order.number} מ-${order.company}`, text: `${order.company} / ${order.customerName}\n${order.email} ${order.phone}\n\n${itemsText}\n\nסה״כ: ${formatILS(order.total)}\n${siteUrl()}/admin/orders/${order.id}${order.logoUrl ? "\nלוגו מצורף להזמנה" : ""}` }),
   ]);
-  return NextResponse.json({ number: order.number });
+  return NextResponse.json({ number: order.number, token: order.token });
 }

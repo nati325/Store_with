@@ -50,10 +50,18 @@ function Icon({ kind }: { kind: Kind }) {
   }
 }
 
-export default function ProductArt({ slug, category, compact = false, imageUrl }: { slug: string; category?: string; compact?: boolean; imageUrl?: string }) {
+const LOGO_BOX: Record<Kind, [number, number, number, number]> = { mug: [164, 145, 56, 56], tote: [165, 168, 70, 52], lanyard: [176, 188, 48, 44], gift: [144, 166, 46, 46] };
+
+export default function ProductArt({ slug, category, compact = false, imageUrl, logoSrc }: { slug: string; category?: string; compact?: boolean; imageUrl?: string; logoSrc?: string }) {
   if (imageUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img className={compact ? "art art-sm" : "art"} src={imageUrl} alt="" />;
+    return (
+      <div className="art-wrap">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={compact ? "art art-sm" : "art"} src={imageUrl} alt="" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {logoSrc && <img className="art-logo" src={logoSrc} alt="" />}
+      </div>
+    );
   }
   const kind = kindFor(slug, category);
   const [a, b] = PALETTES[kind];
@@ -74,6 +82,7 @@ export default function ProductArt({ slug, category, compact = false, imageUrl }
       <circle cx="340" cy="40" r="90" fill="rgba(255,255,255,.07)" />
       <circle cx="40" cy="270" r="70" fill="rgba(255,255,255,.06)" />
       <Icon kind={kind} />
+      {logoSrc && (() => { const [x, y, w, h] = LOGO_BOX[kind]; return <image href={logoSrc} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid meet" />; })()}
     </svg>
   );
 }

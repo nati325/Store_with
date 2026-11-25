@@ -15,6 +15,9 @@ function fields(fd: FormData) {
     name, slug, basePrice,
     category: String(fd.get("category") ?? "").trim(),
     description: String(fd.get("description") ?? "").trim(),
+    branding: String(fd.get("branding") ?? "").trim().slice(0, 200),
+    leadTime: String(fd.get("leadTime") ?? "").trim().slice(0, 100),
+    tags: String(fd.get("tags") ?? "").toLowerCase().split(",").map((t) => t.trim().replace(/[^a-z0-9-]/g, "")).filter(Boolean).join(","),
     minQty: Math.max(1, parseInt(String(fd.get("minQty")), 10) || 1),
     tiers: parseTiers(String(fd.get("tiers") ?? "")),
   };

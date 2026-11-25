@@ -1,4 +1,4 @@
-export const metadata = { title: "הצהרת נגישות | חנות לעסקים" };
+export const metadata = { title: "הצהרת נגישות" };
 export default function Accessibility() {
   return (
     <div className="wrap legal">

@@ -17,8 +17,12 @@ model Product {
   basePrice   Int // באגורות, מחיר ליחידה ללא מע"מ
   minQty      Int         @default(1)
   active      Boolean     @default(true)
+  branding    String      @default("") // שיטות מיתוג, למשל "הדפסה, חריטה"
+  leadTime    String      @default("") // זמן אספקה, למשל "5-10 ימי עסקים"
+  tags        String      @default("") // תגיות מופרדות בפסיק, לדפי חג
   tiers       PriceTier[]
   orderItems  OrderItem[]
+  choices     ProgramChoice[]
   createdAt   DateTime    @default(now())
 }
 
@@ -44,6 +48,13 @@ model Order {
   address      String
   eventDate    String      @default("")
   notes        String      @default("")
+  token        String      @default("") // סוד לגישת הלקוח לדף ההזמנה
+  logoUrl      String      @default("") // לוגו שהלקוח העלה להדפסה
+  shipTo       String      @default("") // כתובות נוספות וחלוקת כמויות
+  proofUrl     String      @default("") // הדמיה שנשלחה לאישור
+  proofStatus  String      @default("NONE") // NONE | SENT | APPROVED | CHANGES
+  proofNote    String      @default("") // הערת העסק על ההדמיה
+  proofReply   String      @default("") // תגובת הלקוח
   paymentUrl   String      @default("")
   adminNotes   String      @default("")
   paidAt       DateTime?
@@ -73,6 +84,45 @@ model QuoteRequest {
   phone     String
   message   String
   product   String   @default("")
+  kind      String   @default("QUOTE") // QUOTE | SAMPLE
   status    String   @default("NEW") // NEW | DONE
   createdAt DateTime @default(now())
+}
+
+model Campaign {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  title     String
+  intro     String    @default("")
+  tag       String    // מוצרים עם התגית הזו מוצגים בדף
+  active    Boolean   @default(true)
+  deadline  DateTime? // מועד אחרון מומלץ להזמנה
+  createdAt DateTime  @default(now())
+}
+
+model GiftProgram {
+  id           Int             @id @default(autoincrement())
+  token        String          @unique
+  company      String
+  contactEmail String          @default("")
+  message      String          @default("")
+  budget       Int // תקציב מקסימלי לעובד, באגורות
+  deadline     DateTime?
+  status       String          @default("OPEN") // OPEN | CLOSED
+  choices      ProgramChoice[]
+  createdAt    DateTime        @default(now())
+}
+
+model ProgramChoice {
+  id        Int         @id @default(autoincrement())
+  programId Int
+  program   GiftProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  address   String      @default("")
+  productId Int
+  product   Product     @relation(fields: [productId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@unique([programId, email])
 }

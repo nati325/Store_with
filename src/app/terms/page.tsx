@@ -1,4 +1,4 @@
-export const metadata = { title: "תקנון ותנאי רכישה | חנות לעסקים" };
+export const metadata = { title: "תקנון ותנאי רכישה" };
 export default function Terms() {
   return (
     <div className="wrap legal">

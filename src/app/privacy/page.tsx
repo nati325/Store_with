@@ -1,4 +1,4 @@
-export const metadata = { title: "מדיניות פרטיות | חנות לעסקים" };
+export const metadata = { title: "מדיניות פרטיות" };
 export default function Privacy() {
   return (
     <div className="wrap legal">

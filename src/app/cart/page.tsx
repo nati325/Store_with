@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
 import ProductArt from "@/components/ProductArt";
 import { formatILS } from "@/lib/pricing";
 
-type Quote = { lines: { productId: number; name: string; qty: number; unitPrice: number; lineTotal: number; minQty: number; error?: string }[]; subtotal: number; vat: number; total: number; ok: boolean };
+type Quote = { lines: { productId: number; name: string; qty: number; unitPrice: number; lineTotal: number; minQty: number; leadTime?: string; error?: string }[]; subtotal: number; vat: number; total: number; ok: boolean };
 
 export default function CartPage() {
   const { lines, setQty, remove, clear } = useCart();
@@ -14,6 +14,30 @@ export default function CartPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoErr, setLogoErr] = useState("");
+  const [logoBusy, setLogoBusy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // מילוי אוטומטי של פרטי חברה מהזמנה קודמת (נשמר בדפדפן בלבד)
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("bulk-shop-contact") || "{}");
+      const f = formRef.current;
+      if (f) for (const [k, v] of Object.entries(saved)) { const el = f.elements.namedItem(k) as HTMLInputElement | null; if (el && !el.value && typeof v === "string") el.value = v; }
+    } catch {}
+  }, [lines.length]);
+
+  async function uploadLogo(file: File | undefined) {
+    if (!file) return;
+    setLogoErr(""); setLogoBusy(true);
+    const fd = new FormData(); fd.append("file", file);
+    const res = await fetch("/api/logo", { method: "POST", body: fd });
+    const json = await res.json().catch(() => ({}));
+    setLogoBusy(false);
+    if (!res.ok) { setLogoErr(json.error ?? "שגיאה בהעלאה"); return; }
+    setLogoUrl(json.url);
+  }
 
   useEffect(() => {
     if (lines.length === 0) { setQuote(null); return; }
@@ -28,12 +52,17 @@ export default function CartPage() {
     e.preventDefault();
     setErr(""); setBusy(true);
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
-    const res = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...data, lines }) });
+    const res = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...data, logoUrl, lines }) });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) { setErr(json.error ?? "שגיאה בשליחת ההזמנה"); return; }
+    try {
+      const keep: Record<string, string> = {};
+      for (const k of ["customerName", "company", "taxId", "email", "phone", "address"]) keep[k] = String(data[k] ?? "");
+      localStorage.setItem("bulk-shop-contact", JSON.stringify(keep));
+    } catch {}
     clear();
-    router.push(`/order/${json.number}`);
+    router.push(`/order/${json.number}?t=${json.token}`);
   }
 
   if (lines.length === 0) {
@@ -66,6 +95,7 @@ export default function CartPage() {
                     <b>{q ? formatILS(q.lineTotal) : "…"}</b>
                   </div>
                   {q?.error && <span className="error">{q.error}</span>}
+                  {q?.leadTime && <span className="muted">זמן אספקה: {q.leadTime}</span>}
                   <div className="line-ctl">
                     <label style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
                       כמות
@@ -79,7 +109,7 @@ export default function CartPage() {
             );
           })}
 
-          <form id="order-form" onSubmit={submit} className="panel" style={{ marginTop: 24 }}>
+          <form id="order-form" ref={formRef} onSubmit={submit} className="panel" style={{ marginTop: 24 }}>
             <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
             <h2 style={{ fontSize: "1.5rem" }}>פרטים להזמנה</h2>
             <p className="muted">ההזמנה נשלחת אלינו לאישור. אין חיוב באתר.</p>
@@ -94,6 +124,19 @@ export default function CartPage() {
             </div>
             <label htmlFor="address">כתובת למשלוח *</label><input id="address" name="address" autoComplete="street-address" required />
             <label htmlFor="eventDate">תאריך אירוע / מועד אספקה רצוי</label><input id="eventDate" name="eventDate" type="date" />
+            <label htmlFor="shipTo">משלוח למספר כתובות (אופציונלי): כתובת וכמות לכל אחת</label>
+            <textarea id="shipTo" name="shipTo" rows={2} placeholder={"תל אביב, הרצל 1: 100 יח׳\nחיפה, הנמל 5: 50 יח׳"} />
+            <label htmlFor="logo">לוגו להדפסה (אופציונלי: JPG, PNG, WEBP או GIF)</label>
+            <input id="logo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => uploadLogo(e.target.files?.[0])} />
+            {logoBusy && <p className="muted">מעלה…</p>}
+            {logoErr && <p className="error" role="alert">{logoErr}</p>}
+            {logoUrl && (
+              <p style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoUrl} alt="הלוגו שהועלה" style={{ maxHeight: 56, maxWidth: 120, objectFit: "contain", background: "var(--surface-2)", borderRadius: 8, padding: 4 }} />
+                <button type="button" className="linkbtn" onClick={() => setLogoUrl("")}>הסרה</button>
+              </p>
+            )}
             <label htmlFor="notes">הערות (עיצוב לוגו, התאמות וכו׳)</label><textarea id="notes" name="notes" rows={3} />
           </form>
         </div>
@@ -105,7 +148,8 @@ export default function CartPage() {
           <div className="sum-row total"><span>סה״כ</span><span>{quote ? formatILS(quote.total) : "…"}</span></div>
           {err && <p className="error">{err}</p>}
           <button className="btn block" form="order-form" disabled={busy || !quote?.ok} style={{ marginTop: 14 }}>{busy ? "שולח…" : "שליחת הזמנה"}</button>
-          <p className="muted" style={{ fontSize: ".85rem", margin: "12px 0 0" }}>נחזור אליכם עם אישור, חשבונית וקישור לתשלום.</p>
+          <p className="muted" style={{ fontSize: ".85rem", margin: "12px 0 0" }}>נחזור אליכם עם אישור, הדמיה לאישור (אם הועלה לוגו), חשבונית וקישור לתשלום.</p>
+          <Link className="btn secondary block" style={{ marginTop: 10 }} href="/cart/quote">הצעת מחיר להדפסה</Link>
         </aside>
       </div>
     </div>

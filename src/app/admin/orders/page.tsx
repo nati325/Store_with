@@ -2,7 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
-import { STATUSES } from "@/lib/statuses";
+import { STATUSES, PROOF } from "@/lib/statuses";
 import { formatILS } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +46,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: { st
       {orders.map((o) => (
         <div className="ocard" key={o.id}>
           <div>
-            <Link href={`/admin/orders/${o.id}`} className="num" style={{ textDecoration: "underline" }}>{o.number}</Link> <span className="status" data-s={o.status}>{STATUSES[o.status] ?? o.status}</span>
+            <Link href={`/admin/orders/${o.id}`} className="num" style={{ textDecoration: "underline" }}>{o.number}</Link> <span className="status" data-s={o.status}>{STATUSES[o.status] ?? o.status}</span>{o.logoUrl && <span className="badge-mini">לוגו</span>}{o.proofStatus !== "NONE" && <span className="badge-mini">{PROOF[o.proofStatus]}</span>}
             <div className="muted">{o.createdAt.toLocaleString("he-IL")}</div>
             <p style={{ margin: "10px 0 0" }}><b>{o.company}</b> · {o.customerName}<br />
               <span className="muted">{o.email} · {o.phone}<br />{o.address}</span></p>

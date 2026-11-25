@@ -1,8 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function QuotePage() {
+function QuoteForm() {
+  const sp = useSearchParams();
+  const sample = sp.get("kind") === "sample";
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
   const [err, setErr] = useState("");
 
@@ -28,9 +32,10 @@ export default function QuotePage() {
   }
   return (
     <div className="wrap" style={{ maxWidth: 760, paddingBottom: 64 }}>
-      <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)", marginTop: 32 }}>בקשת הצעת מחיר</h1>
-      <p className="muted">כמות גדולה במיוחד, מוצר מיוחד או התאמה אישית? ספרו לנו מה אתם צריכים.</p>
+      <h1 style={{ fontSize: "clamp(1.9rem,4vw,2.6rem)", marginTop: 32 }}>{sample ? "בקשת דוגמית" : "בקשת הצעת מחיר"}</h1>
+      <p className="muted">{sample ? "רוצים לראות ולהרגיש לפני שמזמינים? ספרו לנו איזה מוצר ולאן לשלוח." : "כמות גדולה במיוחד, מוצר מיוחד או התאמה אישית? ספרו לנו מה אתם צריכים."}</p>
       <form onSubmit={submit} className="panel">
+        <input type="hidden" name="kind" value={sample ? "SAMPLE" : "QUOTE"} />
         <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
         <div className="row">
           <div><label htmlFor="name">שם איש קשר *</label><input id="name" name="name" autoComplete="name" required /></div>
@@ -40,11 +45,15 @@ export default function QuotePage() {
           <div><label htmlFor="email">אימייל *</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
           <div><label htmlFor="phone">טלפון *</label><input id="phone" name="phone" type="tel" autoComplete="tel" required /></div>
         </div>
-        <label htmlFor="product">מוצר מבוקש</label><input id="product" name="product" />
-        <label htmlFor="message">פרטי הבקשה (כמות, מועד, התאמות) *</label><textarea id="message" name="message" rows={5} required />
+        <label htmlFor="product">מוצר מבוקש</label><input id="product" name="product" defaultValue={sp.get("product") ?? ""} />
+        <label htmlFor="message">{sample ? "כתובת למשלוח והערות *" : "פרטי הבקשה (כמות, מועד, התאמות) *"}</label><textarea id="message" name="message" rows={5} required />
         {err && <p className="error">{err}</p>}
         <p style={{ marginTop: 16 }}><button className="btn" disabled={state === "busy"}>{state === "busy" ? "שולח…" : "שליחת בקשה"}</button></p>
       </form>
     </div>
   );
+}
+
+export default function QuotePage() {
+  return (<Suspense><QuoteForm /></Suspense>);
 }
