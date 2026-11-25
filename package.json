@@ -8,7 +8,9 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx --test src/lib/pricing.test.ts src/lib/lib.test.ts"
+    "test": "tsx --test src/lib/pricing.test.ts src/lib/lib.test.ts",
+    "postinstall": "prisma generate",
+    "vercel-build": "node scripts/vercel-build.js"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
