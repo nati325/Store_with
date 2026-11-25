@@ -20,6 +20,7 @@ export async function sendOrderUpdate(o: O, extra = "") {
   const lines = [`שלום ${o.customerName},`, "", `ההזמנה ${o.number} עודכנה. סטטוס: ${CUSTOMER_STATUS[o.status] ?? o.status}.`];
   if (o.proofStatus === "SENT") lines.push("", "שלחנו אליכם הדמיה לאישור. אפשר לאשר או לבקש שינויים בדף ההזמנה.");
   if (o.paymentUrl && o.status !== "PAID" && o.status !== "CANCELLED") lines.push("", `לתשלום: ${o.paymentUrl}`);
+  else if (process.env.CARDCOM_TERMINAL && process.env.CARDCOM_API_NAME && o.status === "CONFIRMED") lines.push("", "ההזמנה אושרה. אפשר לשלם בכרטיס אשראי בדף ההזמנה (קישור בהמשך).");
   if (extra) lines.push("", extra);
   lines.push("", `מעקב ופרטים: ${orderLink(o)}`);
   return sendMail({ to: o.email, subject: `עדכון להזמנה ${o.number}`, text: lines.join("\n") });

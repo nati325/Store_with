@@ -9,6 +9,7 @@ import { safeHttpsUrl } from "@/lib/tiers";
 import { STATUSES, PROOF } from "@/lib/statuses";
 import { newToken, orderLink, sendOrderUpdate } from "@/lib/orderMail";
 import { saveImage } from "@/lib/uploads";
+import { cardcomConfig, syncPayment } from "@/lib/cardcom";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,15 @@ async function sendProof(formData: FormData) {
   redirect(back + "?sent=1");
 }
 
+async function checkPayment(formData: FormData) {
+  "use server";
+  requireAdmin();
+  const id = Number(formData.get("id"));
+  const r = await syncPayment(id);
+  revalidatePath(`/admin/orders/${id}`);
+  redirect(`/admin/orders/${id}?pay=${r}`);
+}
+
 async function emailCustomer(formData: FormData) {
   "use server";
   requireAdmin();
@@ -61,7 +71,7 @@ async function emailCustomer(formData: FormData) {
   revalidatePath(`/admin/orders/${id}`);
 }
 
-export default async function AdminOrder({ params, searchParams }: { params: { id: string }; searchParams: { error?: string; sent?: string } }) {
+export default async function AdminOrder({ params, searchParams }: { params: { id: string }; searchParams: { error?: string; sent?: string; pay?: string } }) {
   requireAdmin();
   const o = await db.order.findUnique({ where: { id: Number(params.id) }, include: { items: true } });
   if (!o) notFound();
@@ -126,6 +136,22 @@ export default async function AdminOrder({ params, searchParams }: { params: { i
           <p style={{ marginTop: 12 }}><button className="btn">שליחת הדמיה לאישור</button></p>
         </form>
       </div>
+
+      {(cardcomConfig() || o.paidAt) && (
+        <div className="panel" style={{ marginTop: 16 }}>
+          <h3>תשלום (Cardcom)</h3>
+          {o.paidAt ? (
+            <p>שולם: <b>{formatILS(o.paidAmount)}</b> ב-{o.paidAt.toLocaleString("he-IL")}{o.invoiceNo && ` · מסמך מס׳ ${o.invoiceNo}`}{o.invoiceUrl && <> · <a href={o.invoiceUrl} target="_blank" rel="noopener noreferrer">צפייה בחשבונית</a></>}</p>
+          ) : (
+            <p className="muted">{o.lowProfileId ? "נפתח דף תשלום ללקוח, עדיין לא אומת תשלום." : "הלקוח יראה כפתור תשלום בכרטיס אשראי אחרי שהסטטוס ישונה ל\"אושרה\"."}</p>
+          )}
+          {searchParams.pay === "pending" && <p className="muted" role="status">לא נמצא תשלום מאומת.</p>}
+          {searchParams.pay === "error" && <p className="error" role="alert">הבדיקה מול Cardcom נכשלה, נסו שוב.</p>}
+          {!o.paidAt && o.lowProfileId && (
+            <form action={checkPayment}><input type="hidden" name="id" value={o.id} /><button className="btn secondary small">בדיקת תשלום מול Cardcom</button></form>
+          )}
+        </div>
+      )}
 
       <form action={save} className="panel" style={{ marginTop: 16 }}>
         <input type="hidden" name="id" value={o.id} />

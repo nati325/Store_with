@@ -56,6 +56,10 @@ model Order {
   proofNote    String      @default("") // הערת העסק על ההדמיה
   proofReply   String      @default("") // תגובת הלקוח
   paymentUrl   String      @default("")
+  lowProfileId String      @default("") // מזהה דף התשלום האחרון ב-Cardcom
+  paidAmount   Int         @default(0) // באגורות, כפי שאומת מול Cardcom
+  invoiceUrl   String      @default("") // קישור לחשבונית שהופקה
+  invoiceNo    String      @default("")
   adminNotes   String      @default("")
   paidAt       DateTime?
   subtotal     Int // באגורות, ללא מע"מ

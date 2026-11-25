@@ -5,22 +5,46 @@ import { formatILS } from "@/lib/pricing";
 import { tokenOk } from "@/lib/orderMail";
 import { CUSTOMER_STATUS } from "@/lib/statuses";
 import ReorderButton from "@/components/ReorderButton";
-import { respondProof } from "./actions";
+import { respondProof, startPayment } from "./actions";
+import { cardcomConfig, syncPayment } from "@/lib/cardcom";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "מעקב הזמנה", robots: { index: false } };
 
-export default async function OrderDone({ params, searchParams }: { params: { number: string }; searchParams: { t?: string; err?: string } }) {
-  const o = await db.order.findUnique({ where: { number: params.number }, include: { items: { include: { product: { select: { slug: true } } } } } });
+export default async function OrderDone({ params, searchParams }: { params: { number: string }; searchParams: { t?: string; err?: string; paid?: string } }) {
+  const include = { items: { include: { product: { select: { slug: true } } } } };
+  let o = await db.order.findUnique({ where: { number: params.number }, include });
   if (!o || !tokenOk(searchParams.t, o.token)) notFound();
+  // בחזרה מדף התשלום מאמתים מול Cardcom מיד, בלי להמתין ל-webhook
+  if (searchParams.paid && o.lowProfileId && !o.paidAt && (await syncPayment(o.id)) === "paid") o = (await db.order.findUnique({ where: { number: params.number }, include }))!;
+  const cc = !!cardcomConfig();
   return (
     <div className="wrap done">
       <div className="check" aria-hidden>✓</div>
       <h1 style={{ fontSize: "clamp(2rem,5vw,3rem)" }}>תודה, ההזמנה התקבלה</h1>
       <p className="muted">מספר הזמנה <span className="ordnum">{o.number}</span></p>
       <p><span className="status" data-s={o.status}>{CUSTOMER_STATUS[o.status] ?? o.status}</span></p>
-      {o.paymentUrl && o.status !== "PAID" && o.status !== "CANCELLED" && (
-        <p><a className="btn" href={o.paymentUrl} rel="noopener noreferrer">לתשלום מאובטח</a></p>
+      {o.paidAt ? (
+        <div className="panel" role="status">
+          <b style={{ color: "var(--ok)" }}>התשלום התקבל, תודה.</b>
+          {o.invoiceUrl && <p style={{ margin: "8px 0 0" }}><a className="btn secondary small" href={o.invoiceUrl} target="_blank" rel="noopener noreferrer">צפייה בחשבונית</a></p>}
+        </div>
+      ) : (
+        <>
+          {searchParams.paid === "0" && <p className="error" role="alert">התשלום לא הושלם. אפשר לנסות שוב.</p>}
+          {searchParams.paid === "1" && <p className="notice-soft" role="status">מאמתים את התשלום מול חברת האשראי. אם לא התעדכן תוך דקה, רעננו את הדף.</p>}
+          {searchParams.err === "pay" && <p className="error" role="alert">לא הצלחנו לפתוח את דף התשלום. נסו שוב או פנו אלינו.</p>}
+          {cc && o.status === "CONFIRMED" && (
+            <form action={startPayment}>
+              <input type="hidden" name="number" value={o.number} /><input type="hidden" name="token" value={o.token} />
+              <button className="btn">לתשלום בכרטיס אשראי</button>
+            </form>
+          )}
+          {cc && o.status === "NEW" && <p className="muted">אחרי שנאשר את ההזמנה, יופיע כאן כפתור לתשלום מאובטח בכרטיס אשראי.</p>}
+          {o.paymentUrl && o.status !== "CANCELLED" && !(cc && o.status === "CONFIRMED") && (
+            <p><a className="btn" href={o.paymentUrl} rel="noopener noreferrer">לתשלום מאובטח</a></p>
+          )}
+        </>
       )}
 
       {o.proofStatus !== "NONE" && o.proofUrl && (
