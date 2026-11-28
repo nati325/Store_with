@@ -76,3 +76,18 @@ test("אימות תשלום: רק תשלום מוצלח, להזמנה הנכונ
   assert.ok(!verifyResult({ ResponseCode: 0, ReturnValue: "BS-1" }, o).ok);
   assert.ok(!verifyResult(null, o).ok);
 });
+
+import { runtimeDbUrl, directDbUrl, dbLikeNames } from "./dburl";
+test("זיהוי כתובת מסד בכל שם משתנה", () => {
+  const A = "postgresql://u:p@pooler.host/db", B = "postgresql://u:p@direct.host/db";
+  assert.equal(runtimeDbUrl({ DATABASE_URL: A }), A);
+  assert.equal(runtimeDbUrl({ POSTGRES_URL: A, POSTGRES_URL_NON_POOLING: B }), A);
+  assert.equal(directDbUrl({ POSTGRES_URL: A, POSTGRES_URL_NON_POOLING: B }), B);
+  assert.equal(directDbUrl({ DATABASE_URL: A, DATABASE_URL_UNPOOLED: B }), B);
+  // קידומת מותאמת
+  assert.equal(runtimeDbUrl({ STORAGE_POSTGRES_URL: A, STORAGE_POSTGRES_URL_NON_POOLING: B }), A);
+  assert.equal(directDbUrl({ STORAGE_POSTGRES_URL: A, STORAGE_POSTGRES_URL_NON_POOLING: B }), B);
+  assert.equal(directDbUrl({ DATABASE_URL: A }), A);
+  assert.equal(runtimeDbUrl({ FOO: "not a url", PGHOST: "x" }), "");
+  assert.deepEqual(dbLikeNames({ STORAGE_POSTGRES_URL: A, PGHOST: "h", HOME: "/" }), ["PGHOST", "STORAGE_POSTGRES_URL"]);
+});
